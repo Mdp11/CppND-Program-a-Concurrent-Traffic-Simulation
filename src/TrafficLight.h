@@ -14,7 +14,7 @@ class MessageQueue
 {
 public:
     void send(T&& msg);
-    T&& receive();
+    T receive();
 
 private:
     std::deque<T> _queue;
