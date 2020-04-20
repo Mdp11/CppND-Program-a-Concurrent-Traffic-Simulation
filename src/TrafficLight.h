@@ -23,18 +23,18 @@ private:
     
 };
 
+enum class TrafficLightPhase 
+{
+    red,
+    green,
+};
+
 class TrafficLight : public TrafficObject
 {
 
-enum class TrafficLightPhase 
-{
-    Red,
-    Green,
-};
-
 public:
     // constructor / desctructor
-
+    TrafficLight();
     // getters / setters
 
     // typical behaviour methods

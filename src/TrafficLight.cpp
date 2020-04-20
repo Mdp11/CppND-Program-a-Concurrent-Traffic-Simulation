@@ -10,7 +10,7 @@ template <typename T>
 T MessageQueue<T>::receive()
 {
     std::unique_lock lock{_mtx};
-    _condition_variable.wait(lock, [this]{ !_queue.size() != 0; });
+    _condition_variable.wait(lock, [this]{ return !_queue.size() != 0; });
     T msg = std::move(_queue.front());
     _queue.pop_front();
     return msg;
@@ -26,7 +26,6 @@ void MessageQueue<T>::send(T &&msg)
 
 /* Implementation of class "TrafficLight" */
 
-/* 
 TrafficLight::TrafficLight()
 {
     _currentPhase = TrafficLightPhase::red;
@@ -34,16 +33,20 @@ TrafficLight::TrafficLight()
 
 void TrafficLight::waitForGreen()
 {
-    // FP.5b : add the implementation of the method waitForGreen, in which an infinite while-loop 
-    // runs and repeatedly calls the receive function on the message queue. 
-    // Once it receives TrafficLightPhase::green, the method returns.
+    while(true)
+    {
+        if(_queue.receive() == TrafficLightPhase::green)
+        {
+            return;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 }
 
 TrafficLightPhase TrafficLight::getCurrentPhase()
 {
     return _currentPhase;
 }
-*/
 
 void TrafficLight::simulate()
 {
@@ -69,7 +72,7 @@ void TrafficLight::cycleThroughPhases()
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
         }
-        _currentPhase = last_phase = last_phase == TrafficLightPhase::Red ? TrafficLightPhase::Green : TrafficLightPhase::Red;
+        _currentPhase = last_phase = last_phase == TrafficLightPhase::red ? TrafficLightPhase::green : TrafficLightPhase::red;
         _queue.send(std::move(last_phase));
     }   
 }
