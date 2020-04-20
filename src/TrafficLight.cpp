@@ -2,6 +2,7 @@
 #include <random>
 #include <chrono>
 #include <thread>
+#include <algorithm>
 #include "TrafficLight.h"
 
 /* Implementation of class "MessageQueue" */
@@ -10,7 +11,7 @@ template <typename T>
 T MessageQueue<T>::receive()
 {
     std::unique_lock lock{_mtx};
-    _condition_variable.wait(lock, [this]{ return !_queue.size() != 0; });
+    _condition_variable.wait(lock, [this]{ return !_queue.empty(); });
     T msg = std::move(_queue.front());
     _queue.pop_front();
     return msg;
@@ -53,8 +54,6 @@ void TrafficLight::simulate()
     threads.emplace_back(std::thread(&TrafficLight::cycleThroughPhases, this));
 }
 
-
-// virtual function which is executed in a thread
 void TrafficLight::cycleThroughPhases()
 {
 
@@ -72,7 +71,7 @@ void TrafficLight::cycleThroughPhases()
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
         }
-        _currentPhase = last_phase = last_phase == TrafficLightPhase::red ? TrafficLightPhase::green : TrafficLightPhase::red;
+        _currentPhase = last_phase = _currentPhase == TrafficLightPhase::red ? TrafficLightPhase::green : TrafficLightPhase::red;
         _queue.send(std::move(last_phase));
     }   
 }
