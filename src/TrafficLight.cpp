@@ -14,14 +14,15 @@ T MessageQueue<T>::receive()
     // to wait for and receive new messages and pull them from the queue using move semantics. 
     // The received object should then be returned by the receive function. 
 }
+*/
 
 template <typename T>
 void MessageQueue<T>::send(T &&msg)
 {
-    // FP.4a : The method send should use the mechanisms std::lock_guard<std::mutex> 
-    // as well as _condition.notify_one() to add a new message to the queue and afterwards send a notification.
+    std::lock_guard lock{_mtx};
+    _queue.emplace_back(msg);
+    _condition_variable.notify_one();
 }
-*/
 
 /* Implementation of class "TrafficLight" */
 
@@ -57,6 +58,7 @@ void TrafficLight::cycleThroughPhases()
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<std::mt19937::result_type> distribution(4,6);
+    TrafficLightPhase last_phase = _currentPhase;
     while(true)
     {
         auto phase_duration = distribution(rng);
@@ -67,6 +69,7 @@ void TrafficLight::cycleThroughPhases()
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
         }
-        _currentPhase = _currentPhase == TrafficLightPhase::Red ? TrafficLightPhase::Green : TrafficLightPhase::Red;
-    }   //TODO update to message queue?
+        _currentPhase = last_phase = last_phase == TrafficLightPhase::Red ? TrafficLightPhase::Green : TrafficLightPhase::Red;
+        _queue.send(std::move(last_phase));
+    }   
 }
